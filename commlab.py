@@ -9,7 +9,9 @@ PAPER = microbit.Image('99999:90009:90009:90009:99999')
 SCISSORS = microbit.Image('99009:99090:00900:99090:99009')
 RPS = (b'R', b'P', b'S')
 
-MYID = b'00' # TODO: change this to be the same as your assigned micro:bit number
+MYID = b'32'
+
+#TODO: change this to be the same as your assigned micro:bit number
 
 def choose_opponent():
     # """ Return the opponent id from button presses
@@ -59,7 +61,21 @@ def choose_play():
     # """
     #
     # TODO: write code
-    return b''
+    i = 0
+    play = None
+
+    while play is None:
+        confirm_play = input(b"Do you want to play " + RPS[i] + b" ?")
+
+        if confirm_play == 'Y':
+            play = RPS[i]
+        else:
+            if i == 2:
+                i = 0
+            elif i != 2:
+                i = i + 1
+
+    return play
 
 def send_choice(opponent_id, play, round_number):
     # """ Sends a message via the radio

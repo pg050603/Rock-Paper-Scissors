@@ -51,10 +51,26 @@ def test_choose_opponent():
     got_opponent_id = commlab.choose_opponent()
     assert got_opponent_id == str_id
 
+test_choose_opponent()
+
 def test_choose_play():
-    """ Test the choose_play function with a given play """
+    """Test the choose_play function with a given play"""
     # TODO: write test
-    assert True # Replace this with your assert for the test
+    #Test to choose r p or s
+    #Chosen by pressing a at the correct loop time
+
+    # Dictionaries like array's but with curl brackets
+    # Map two things together
+    # Map rock to 0 presses, paper to 1 press, and scissors to 2 presses
+    testing = b'R'
+    button_presses = {b'R':0,b'P':1,b'S':2}
+
+    commlab.microbit.button_history.load_history(['b']*button_presses[testing] + ['a'])
+    Play = commlab.choose_play()
+
+    assert Play == testing
+
+test_choose_play()
 
 def test_send_choice():
     """ Test the play message sending capabilities with a given message """
@@ -66,6 +82,8 @@ def test_send_choice():
     # Run test
     commlab.send_choice(opponent_id, the_play, round_number)
     assert commlab.radio.get_last_out() == b'4217R7'
+
+test_send_choice()
 
 def test_acknowledge_message():
     """ Test the acknowledgement message construction and send functionality """

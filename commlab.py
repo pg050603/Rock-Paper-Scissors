@@ -7,6 +7,7 @@ import radio
 ROCK = microbit.Image('00000:09990:09990:09990:00000')
 PAPER = microbit.Image('99999:90009:90009:90009:99999')
 SCISSORS = microbit.Image('99009:99090:00900:99090:99009')
+
 RPS = (b'R', b'P', b'S')
 
 MYID = b'32'
@@ -64,15 +65,13 @@ def choose_play():
     options = [ROCK, PAPER, SCISSORS]
     i = 0
 
-    while microbit.button_a.get_presses() == 0:
-        p = i % 3
-        microbit.display.show(options[p])
-        microbit.sleep(2000)
-        i = i + 1
+    while not microbit.button_a.was_pressed():
+        microbit.sleep(100)
+        microbit.display.show(options[i % 3])
+        if microbit.button_b.was_pressed():
+            i = i + 1
 
-    play = RPS[p]
-    microbit.display.clear()
-    microbit.sleep(1000)
+    play = RPS[i % 3]
 
     return play
 
@@ -93,9 +92,16 @@ def send_choice(opponent_id, play, round_number):
     # int:
     #     Time that the message was sent
     # """
-    #
     # TODO: write code
-    return 0
+    message_sent = ""
+    message_sent+=opponent_id.decode("UTF-8")
+    message_sent+=MYID.decode("UTF-8")
+    message_sent+=play.decode("UTF-8")
+    message_sent+=str(round_number)
+    # message_sent = str.encode(message_sent, 'UTF-8')
+    radio.send(message_sent)
+
+    return utime.ticks_ms()
 
 def send_acknowledgement(opponent_id, round_number):
     # """ Sends an acknowledgement message
@@ -109,6 +115,8 @@ def send_acknowledgement(opponent_id, round_number):
     # """
     #
     # TODO: write code
+    #Radio Message will be round number and whether or not turn was accepted
+
     pass
 
 def parse_message(opponent_id, round_number):
@@ -213,7 +221,6 @@ def display_score(score, times=3):
 
 def main():
     # """ Main control loop"""
-    #
     # TODO: fill in parts of code below as marked.
     
     # set up the radio for a moderate range
@@ -237,6 +244,7 @@ def main():
         acknowledged, resolved = (False, False)
         # passive waiting display
         microbit.display.show(microbit.Image.ALL_CLOCKS, wait=False, loop=True)
+
         while not (acknowledged and resolved):
             # get a message from the radio
             message = parse_message(opponent_id, round_number)

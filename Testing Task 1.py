@@ -52,3 +52,12 @@ if microbit.button_a.was_pressed():
 
 
 
+  while microbit.button_a.get_presses() == 0:
+        p = i % 3
+        microbit.display.show(options[p])
+        microbit.sleep(2000)
+        i = i + 1
+
+    play = RPS[p]
+    microbit.display.clear()
+    microbit.sleep(1000)

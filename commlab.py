@@ -61,19 +61,18 @@ def choose_play():
     # """
     #
     # TODO: write code
+    options = [ROCK, PAPER, SCISSORS]
     i = 0
-    play = None
 
-    while play is None:
-        confirm_play = input(b"Do you want to play " + RPS[i] + b" ?")
+    while microbit.button_a.get_presses() == 0:
+        p = i % 3
+        microbit.display.show(options[p])
+        microbit.sleep(2000)
+        i = i + 1
 
-        if confirm_play == 'Y':
-            play = RPS[i]
-        else:
-            if i == 2:
-                i = 0
-            elif i != 2:
-                i = i + 1
+    play = RPS[p]
+    microbit.display.clear()
+    microbit.sleep(1000)
 
     return play
 

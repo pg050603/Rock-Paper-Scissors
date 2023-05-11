@@ -127,3 +127,5 @@ def test_parse_message():
     commlab.radio.push_message(received_message_case_4)
     assert commlab.parse_message(opponent_id, round_number) is None, "Case 4 play"
     assert commlab.radio.get_last_out() is None, "Case 4 ACK"
+
+test_parse_message()

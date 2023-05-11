@@ -100,8 +100,8 @@ def send_choice(opponent_id, play, round_number):
     message_sent+=str(round_number)
     # message_sent = str.encode(message_sent, 'UTF-8')
     radio.send(message_sent)
-
-    return utime.ticks_ms()
+    time = utime.ticks_ms()
+    return time
 
 def send_acknowledgement(opponent_id, round_number):
     # """ Sends an acknowledgement message
@@ -154,7 +154,35 @@ def parse_message(opponent_id, round_number):
     # """
     #
     # TODO: write code
-    return b''
+
+    current_message = radio.receive()
+    if current_message == None:
+        return None
+
+    current_message = current_message.encode("UTF-8")
+    c = False
+
+    #Validate Length of message
+    a = len(current_message) - len(str(round_number))
+    if a != 5:
+        return None
+
+    #Validate current sender and receiver
+    if current_message[0:2] != MYID or current_message[2:4] != opponent_id:
+        return None
+
+    #Validate Play
+    chosen_play = chr(current_message[4]).encode("UTF-8")
+    if chosen_play != b'R' and chosen_play != b'P' and chosen_play != b'S' and chosen_play != b'X':
+        return None
+    if round_number != int(current_message[5:]):
+        send_acknowledgement(opponent_id, int(current_message[5:]))
+        return None
+
+    #Return the correct play for game resolution
+    if chosen_play != b'X':
+        send_acknowledgement(opponent_id, round_number)
+    return chosen_play
 
 def resolve(my, opp):
     # """ Returns the outcome of a rock-paper-scissors match
@@ -248,36 +276,44 @@ def main():
     while True:
         # get a play from the buttons
         choice = choose_play()
-        # send choice
+        # send choice via Radio
         send_time = send_choice(opponent_id, choice, round_number)
-        
+
+        #Initialise acknowledged & resolved to false
         acknowledged, resolved = (False, False)
+
         # passive waiting display
         microbit.display.show(microbit.Image.ALL_CLOCKS, wait=False, loop=True)
 
+        #Loop until acknowledged & resolved
         while not (acknowledged and resolved):
             # get a message from the radio
-            message = parse_message(opponent_id, round_number)
-            
+            message = radio.receive()
+            action = message[4].encode("UTF-8")
+
             # TODO: if is a play
-            if False:
+            if action == RPS[0] or action == RPS[1] or action == RPS[2]:
                 # resolve the match and display the result
                 result = resolve(choice, message)
                 
                 # TODO: update score
+                score = score + result
 
                 # display the score
+                resolved = True
                 display_score(score)
-                
+                microbit.display.show(result)
+
             # TODO: if is acknowledgement
-            if False:
-                pass
+            if action == b'X':
+                acknowledged = True
                 
             # TODO: handle situation if not acknowledged
-            if False:
-                pass
+            if not acknowledged and (utime.ticks_ms() - send_time) > 1000:
+                send_time = send_choice(opponent_id, choice, round_number)
                 
         # TODO: Update round number
+        round_number = round_number + 1
 
 # Do not modify the below code, this makes sure your program runs properly!
 

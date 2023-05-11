@@ -116,7 +116,17 @@ def send_acknowledgement(opponent_id, round_number):
     #
     # TODO: write code
     #Radio Message will be round number and whether or not turn was accepted
+    accepted_code = b'X'
 
+    #This should only be sent if turn accepted = How to check for this??
+    #Is this checked in parse message
+    acknowledgement = ""
+    acknowledgement+=opponent_id.decode("UTF-8")
+    acknowledgement+=MYID.decode("UTF-8")
+    acknowledgement+=accepted_code.decode("UTF-8")
+    acknowledgement+=str(round_number)
+
+    radio.send(acknowledgement)
     pass
 
 def parse_message(opponent_id, round_number):

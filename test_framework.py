@@ -95,6 +95,8 @@ def test_acknowledge_message():
     commlab.send_acknowledgement(opponent_id, round_number)
     assert commlab.radio.get_last_out() == b'4217X7'
 
+test_acknowledge_message()
+
 def test_parse_message():
     """ Test the ability to parse an incoming message """
     # Setup

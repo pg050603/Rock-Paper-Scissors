@@ -299,7 +299,7 @@ def main():
             message = parse_message(opponent_id, round_number)
 
             # TODO: if is a play
-            if message == RPS[0] or message == RPS[1] or message == RPS[2]:
+            if not resolved and (message == RPS[0] or message == RPS[1] or message == RPS[2]):
                 # resolve the match and display the result
                 result = resolve(choice, message)
 

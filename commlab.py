@@ -100,7 +100,8 @@ def send_choice(opponent_id, play, round_number):
 
     message_sent = opponent_id + MYID + play + bytes(str(round_number), "UTF-8")
     # message_sent = str.encode(message_sent, 'UTF-8')
-    radio.send(message_sent)
+    print(message_sent)
+    radio.send_bytes(message_sent)
     time = utime.ticks_ms()
     return time
 
@@ -122,14 +123,10 @@ def send_acknowledgement(opponent_id, round_number):
 
     # This should only be sent if turn accepted = How to check for this??
     # Is this checked in parse message
-    acknowledgement = ""
-    acknowledgement += opponent_id.decode("UTF-8")
-    acknowledgement += MYID.decode("UTF-8")
-    acknowledgement += accepted_code.decode("UTF-8")
-    acknowledgement += str(round_number)
+    acknowledgement = opponent_id + MYID + accepted_code + bytes(str(round_number), "UTF-8")
 
-    radio.send(acknowledgement)
-    pass
+    radio.send_bytes(acknowledgement)
+    print("Acknowledgement sent")
 
 
 def parse_message(opponent_id, round_number):
@@ -163,29 +160,47 @@ def parse_message(opponent_id, round_number):
     if current_message == None:
         return None
 
-    current_message = current_message
-    c = False
+    # current_message = current_message
+    # c = False
 
+    print(current_message)
     # Validate Length of message
-    a = len(current_message) - len(str(round_number))
-    if a != 5:
+    a = len(current_message)
+    if a > 10 or a < 6:
         return None
 
     # Validate current sender and receiver
     if current_message[0:2] != MYID or current_message[2:4] != opponent_id:
         return None
 
-    # Validate Play
-    chosen_play = chr(current_message[4]).encode("UTF-8")
-    if chosen_play != b'R' and chosen_play != b'P' and chosen_play != b'S' and chosen_play != b'X':
-        return None
+    # print(current_message)
+
     if round_number != int(current_message[5:]):
+        print("hit bad round number part")
         send_acknowledgement(opponent_id, int(current_message[5:]))
         return None
 
-    # Return the correct play for game resolution
-    if chosen_play != b'X':
+    # Validate Play
+    chosen_play = current_message[4:5]
+    if chosen_play == b'R' or chosen_play == b'P' or chosen_play == b'S':
+        print("R, P, S ran")
         send_acknowledgement(opponent_id, round_number)
+
+        return chosen_play
+    elif chosen_play == b'X':
+        print("Turn was X")
+        return chosen_play
+
+    else:
+        print("Turn was None")
+        return None
+
+    # if chosen_play == b'R' or chosen_play == b'P' or chosen_play == b'S':
+
+    # # Return the correct play for game resolution
+    # if chosen_play != b'X':
+    #     send_acknowledgement(opponent_id, round_number)
+    #     print("sending acknowledgement")
     return chosen_play
 
 
@@ -281,6 +296,7 @@ def main():
 
     # Run an arbitrarily long RPS contest
     while True:
+        print("round next")
         # get a play from the buttons
         choice = choose_play()
         # send choice via Radio
@@ -299,7 +315,7 @@ def main():
             message = parse_message(opponent_id, round_number)
 
             # TODO: if is a play
-            if not resolved and (message == RPS[0] or message == RPS[1] or message == RPS[2]):
+            if not resolved and (message == RPS[0] or message == RPS[1] or message == RPS[2]) and (message != None):
                 # resolve the match and display the result
                 result = resolve(choice, message)
 
@@ -309,14 +325,16 @@ def main():
                 # display the score
                 resolved = True
                 display_score(score)
-                microbit.display.show(result)
+                print("resolved round")
 
             # TODO: if is acknowledgement
             if message == b'X':
+                print("recieved ack")
                 acknowledged = True
 
             # TODO: handle situation if not acknowledged
             if not acknowledged and (utime.ticks_ms() - send_time) > 1000:
+                print("resending ack")
                 send_time = send_choice(opponent_id, choice, round_number)
 
         # TODO: Update round number
